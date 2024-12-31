@@ -90,6 +90,10 @@ class Game:
 
         ## start the game
         while not self.ended:
+            ## if no more cards in deck, end game
+            if len(self.deck) == 0:
+                self.ended = True
+
             currPlayer = self.players[self.currPlayer]
             console.print(f"\n----- {self.players[self.currPlayer].name}'s (idx:{self.currPlayer}) turn -----")
             ## player turn, game status
@@ -100,7 +104,7 @@ class Game:
             for player in self.players:
                 console.print(f"{player.name} spread: {player.spread} | delay: {player.delay_counter}")
 
-            action = input('\nWhat do you want to do? \n[D]rop\n[S]pread\n[K]nock\nPull [DI]scard\nPull [DE]ck\n\tEnter Action: ')
+            action = input('\nWhat do you want to do? \n[D]rop\n[S]pread\n[K]nock\nPull [DI]scard\nPull [DE]ck\n\nEnter Action: ')
             if action == 'D':
                 self.player_drop(currPlayer)
             if action == 'S':
@@ -111,6 +115,11 @@ class Game:
                 currPlayer.pull_from_discard(self)
             if action == 'DE':
                 currPlayer.draw_card(self.deck, 1)
+
+            ## check if (2) spreads have been placed by player then game ends
+            if len(currPlayer.spread) == 2:
+                print(f"{currPlayer.name} Tunk! Game Over")
+                self.ended = True
 
             # proceed to next player turn
             self.currPlayer += 1
@@ -125,5 +134,5 @@ class Game:
                     if player.delay_counter > 0:
                         player.delay_counter -= 1
 
-            if self.turn_counter == 20:
+            if self.turn_counter == 50:
                 self.ended = True
