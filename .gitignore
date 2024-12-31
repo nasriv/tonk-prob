@@ -1,0 +1,5 @@
+.game
+__pycache__
+blackjack.py
+*.jpg
+*.txt
