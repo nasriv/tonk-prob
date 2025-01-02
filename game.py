@@ -134,5 +134,6 @@ class Game:
                     if player.delay_counter > 0:
                         player.delay_counter -= 1
 
+            ##
             if self.turn_counter == 50:
                 self.ended = True
