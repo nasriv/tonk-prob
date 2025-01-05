@@ -7,7 +7,7 @@ def main():
     deck.get_deck()
 
     game = Game()
-    game.play(numPlayers=1, deck=deck)
+    game.play(numPlayers=2, deck=deck)
 
 if __name__ == "__main__":
     main()

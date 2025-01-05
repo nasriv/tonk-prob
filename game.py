@@ -4,6 +4,8 @@ from rich.console import Console
 import random
 
 class Game:
+    global console
+    console = Console()
     def __init__(self):
         self.players = []       # list of players
         self.discard_pile = []  # discard pile
@@ -24,7 +26,7 @@ class Game:
 
     def get_last_discard(self):
         if len(self.discard_pile) == 0:
-            print('No cards in discard pile')
+            console.print('No cards in discard pile')
         else:
             return self.discard_pile.pop()
 
@@ -35,7 +37,7 @@ class Game:
     def player_spread(self, currPlayer):
         '''player spread a set, either a multiple or straight'''
         if currPlayer.check_hand():
-            print(currPlayer.spread)
+            console.print(currPlayer.spreads)
 
     def player_drop(self, currPlayer):
         '''player drops to check if lowest hand value'''
@@ -46,20 +48,20 @@ class Game:
             if player.get_hand_value() <= min_score and player.uuid != winning_player.uuid:
                 min_score = player.get_hand_value()
                 winning_player = player
-        print(f"{winning_player.name} Wins! with a score of {min_score}")
+        console.print(f"{winning_player.name} Wins! with a score of {min_score}")
         for player in self.players:
-            print(f"{player.name} score: {player.get_hand_value()}")
+            console.print(f"{player.name} score: {player.get_hand_value()}")
         ##NOTE: include bank exchange here
         self.ended = True
             
     def check_init_tunk(self):
         for player in self.players:
             if player.get_hand_value() <= 14 or player.get_hand_value() >= 49:
-                print(f"{player.name} has an automatic tunk! {player.show_hand()}:value={player.get_hand_value()}")
+                console.print(f"{player.name} has an automatic tunk! {player.show_hand()}:value={player.get_hand_value()}")
                 ##NOTE: add banking to winning player
                 ##BUG: what to do if multiple players get auto-tunk? payout?
                 return True
-        print("No automatic tunk found")
+        console.print("No automatic tunk found")
         return False
     
     def player_simple_multiples(self, player):
@@ -71,7 +73,6 @@ class Game:
         pass
 
     def play(self, numPlayers, deck):
-        console = Console()
         console.print('----- WELCOME TO TUNK! -----')
 
         self.deck = deck        ## initialize deck
@@ -82,7 +83,7 @@ class Game:
             player.draw_card(self.deck, 5)  ## deal 5 cards to each player
             self.players.append(player)
 
-        self.currPlayer = random.randint(0, numPlayers-1)  ## randomize which player starts the game
+        self.currPlayerIdx = random.randint(0, numPlayers-1)  ## randomize which player starts the game
         self.discard_pile.append(self.deck.deal(1))        ## init discard pile
 
         ### check if any players have a automatic tunk on initial turn (<=14 or >=49)
@@ -94,37 +95,57 @@ class Game:
             if len(self.deck) == 0:
                 self.ended = True
 
-            currPlayer = self.players[self.currPlayer]
-            console.print(f"\n----- {self.players[self.currPlayer].name}'s (idx:{self.currPlayer}) turn -----")
+            currPlayer = self.players[self.currPlayerIdx]
+            console.print(f"\n----- {self.players[self.currPlayer].name}'s (idx:{self.currPlayerIdx}) turn -----")
             ## player turn, game status
             console.print(f"[Round: {self.rounds} | Turn: {self.turn_counter}]")
             console.print(f"Hand: {currPlayer.show_hand()}")
             console.print(f"Hand value: {currPlayer.get_hand_value()}")
             console.print(f"Top Discard Pile: {self.show_last_discard()}")
             for player in self.players:
-                console.print(f"{player.name} spread: {player.spread} | delay: {player.delay_counter}")
+                console.print(f"{player.name} spread: {player.spreads} | delay: {player.delay_counter}")
 
             action = input('\nWhat do you want to do? \n[D]rop\n[S]pread\n[K]nock\nPull [DI]scard\nPull [DE]ck\n\nEnter Action: ')
             if action == 'D':
                 self.player_drop(currPlayer)
             if action == 'S':
-                self.player_spread(currPlayer)
+                if not self.player_spread(currPlayer):
+                    console.print("No cards to spread...")
             if action == 'K':
-                pass
+                ## ask user which player to knock
+                for player_idx, player in enumerate(self.players):
+                    console.print(f"\nplayer: {player.name}\nIndex: {player_idx}\nPlayer Spreads: {player.spreads}")
+                player_knock_id = int(input('\nEnter player ID to knock..'))
+                player_knocked = self.players[player_knock_id]
+
+                ## get which spread to knock
+                if len(player_knocked.spreads) == 0: ## player hasnt spread, cannot knock on them. Skip
+                    continue
+                else:
+                    for spread_idx, spread in enumerate(player_knocked.spreads):
+                        console.print(f"Spread: {spread}\nIndex: {spread_idx}")
+                    spread_knock_idx = int(input("Which spread index to knock?..."))
+
+                    ## ask user which card to knock with
+                    for card_idx, card in enumerate(currPlayer.hand):
+                        console.print(f"card: {str(card[0])+str(card[1])}, id:[{card_idx}]")
+                    card_knock_idx = int(input('\nWhat card id to knock with...'))
+
+                    currPlayer.knock(player_knocked, spread_knock_idx, card_knock_idx)
             if action == 'DI':
                 currPlayer.pull_from_discard(self)
             if action == 'DE':
                 currPlayer.draw_card(self.deck, 1)
 
             ## check if (2) spreads have been placed by player then game ends
-            if len(currPlayer.spread) == 2:
-                print(f"{currPlayer.name} Tunk! Game Over")
+            if len(currPlayer.spreads) == 2:
+                console.print(f"{currPlayer.name} Tunk! Game Over")
                 self.ended = True
 
             # proceed to next player turn
-            self.currPlayer += 1
-            if self.currPlayer > numPlayers-1:
-                self.currPlayer = 0
+            self.currPlayerIdx += 1
+            if self.currPlayerIdx > numPlayers-1:
+                self.currPlayerIdx = 0
 
             self.turn_counter += 1 ## increment turn counter
             if (self.turn_counter-1) % numPlayers == 0:

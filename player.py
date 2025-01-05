@@ -7,7 +7,7 @@ class Player:
         self.name = random.choice(names)    ## intiialize fake player name
         self.uuid = str(uuid.uuid4().hex)       ## assign unique player identifier (uuid)  
         self.hand = []                      ## this is the hand of the player
-        self.spread = []                    ## this is the spread area for each player to drop their sets into
+        self.spreads = []                    ## this is the spread area for each player to drop their sets into
         self.delay_counter = 0              ## delay between dropping if a spread or knock has occured
         self.bank = 0                       ## player bank for betting ##NOTE: NOT IMPLEMENTED YET
 
@@ -27,10 +27,14 @@ class Player:
                 hand_value += card[0]
         return hand_value
     
-    def knock(self, player, cards):
+    def knock(self, player, spread_id, card_id):
         '''knock another player's spread'''
-        self.delay_counter += 1 # increment self.player delay counter
-        player.delay_counter += 1 # increment other player's delay counter
+        knock_card = self.hand[card_id]
+        self.hand.pop(card_id)      # remove card from curr player hand
+
+        player.spreads[spread_id].append(knock_card)   # add card to other players spread    
+        self.delay_counter += 1     # increment self.player delay counter
+        player.delay_counter += 1   # increment other player's delay counter
 
     def check_hand(self):
         '''check if player has any spreads in their hands
