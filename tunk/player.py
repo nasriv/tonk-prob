@@ -62,7 +62,7 @@ class Player:
         else:
             return False
 
-    def draw_card(self, deck, numCards):
+    def pull_from_deck(self, deck, numCards):
         '''draws "n" card from the deck and adds it to the players hand'''
         if len(self.hand) == 0:
             self.hand = deck.deal(numCards)
@@ -76,4 +76,9 @@ class Player:
             self.hand.append(game.get_last_discard()[0])
         except TypeError:
             print('No cards in discard pile')
+
+    def dump_to_discard(self, game, card):
+        '''discard a card into the discard pile'''
+        game.discard_pile.append(card)
+
         

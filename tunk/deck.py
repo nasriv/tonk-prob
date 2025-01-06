@@ -12,13 +12,25 @@ class Deck:
     def __len__(self):
         '''returns the remaining len of cards in the deck'''
         return len(self.cards)
+    
+    def get_deck_value(self):
+        '''returns the remaining point value of the card deck'''
+        deck_value = 0
+        for card in self.cards:
+            if card[0] in ['J', 'Q', 'K']:
+                deck_value += 10   
+            elif card[0] == 'A':
+                deck_value += 1
+            else:
+                deck_value += card[0]
+        return deck_value
 
     def get_deck(self):
         ''' returns the remaining cards in the deck'''
         return self.cards
     
     def deal(self, numCards):
-        '''deals a "n" number of cards from the deck'''
+        '''deals an "n" number of cards from the deck'''
         return [self.cards.pop() for _ in range(numCards)]
 
     def shuffle(self):
