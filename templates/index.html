@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tunk Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div id="game-setup">
+        <button onclick="createGame()">Create Game</button>
+        <div>
+            <input type="text" id="game-id-input" placeholder="Enter Game ID">
+            <button onclick="joinGame()">Join Game</button>
+        </div>
+    </div>
+
+    <div id="game-area" style="display: none;">
+        <div class="game-table">
+            <div id="deck" class="deck" onclick="drawFromDeck()">
+                <span id="deck-count">52</span>
+            </div>
+            <div id="discard-pile" class="discard-pile" onclick="drawFromDiscard()"></div>
+        </div>
+        
+        <div class="game-info">
+            <div>Cards in deck: <span id="deck-count">52</span></div>
+            <div>Current turn: <span id="current-turn">-</span></div>
+        </div>
+        
+        <div class="game-controls">
+            <button onclick="spread()">Spread</button>
+            <button onclick="knock()">Knock</button>
+            <button onclick="drop()">Drop</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='game.js') }}"></script>
+</body>
+</html>

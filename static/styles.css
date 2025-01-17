@@ -1,0 +1,60 @@
+.card {
+    width: 60px;
+    height: 90px;
+    background: white;
+    border: 1px solid #000;
+    border-radius: 5px;
+    position: relative;
+    display: inline-block;
+    margin: 2px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.card.red {
+    color: red;
+}
+
+.card.black {
+    color: black;
+}
+
+.player-hand {
+    min-height: 100px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.deck {
+    width: 60px;
+    height: 90px;
+    background: #006400;
+    border: 1px solid #000;
+    border-radius: 5px;
+    position: absolute;
+    left: 45%;
+    top: 45%;
+    cursor: pointer;
+}
+
+.discard-pile {
+    width: 60px;
+    height: 90px;
+    border: 1px dashed #000;
+    border-radius: 5px;
+    position: absolute;
+    left: 55%;
+    top: 45%;
+}
+
+.game-info {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 5px;
+}

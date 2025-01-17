@@ -14,6 +14,27 @@ class Game:
         self.rounds = 1           # tracks how many times the game has looped through the players
         self.ended = False      # flag to end the game
         self.game_log = {}
+        self.gui_mode = False  # Add flag for GUI mode
+
+    def set_gui_mode(self, enabled=True):
+        self.gui_mode = enabled
+
+    def handle_gui_action(self, action_type, **kwargs):
+        """Handle actions from GUI"""
+        if action_type == 'draw':
+            return self.deck.deal(1)
+        elif action_type == 'spread':
+            player = kwargs.get('player')
+            return self.player_spread(player)
+        elif action_type == 'knock':
+            curr_player = kwargs.get('curr_player')
+            target_player = kwargs.get('target_player')
+            spread_id = kwargs.get('spread_id')
+            card_id = kwargs.get('card_id')
+            return curr_player.knock(target_player, spread_id, card_id)
+        elif action_type == 'drop':
+            curr_player = kwargs.get('player')
+            return self.player_drop(curr_player)
 
     def get_discard_pile_value(self):
         '''returns the point value of the discard pile'''
@@ -113,62 +134,52 @@ class Game:
                 for player in self.players:
                     console.print(f"{player.name} spread: {player.spreads} | delay: {player.delay_counter}")
 
+                ## start of user input play
+                action = input('\nWhat do you want to do? \n[D]rop\n[S]pread\n[K]nock\nPull [DI]scard\nPull [DE]ck\n\nEnter Action: ')
+                if action.upper() == 'D':
+                    self.player_drop(currPlayer)
+                if action.upper() == 'S':
+                    if not self.player_spread(currPlayer):
+                        console.print("No cards to spread...")
+                if action.upper() == 'K':
+                    ## ask user which player to knock
+                    for player_idx, player in enumerate(self.players):
+                        console.print(f"\nplayer: {player.name}\nIndex: {player_idx}\nPlayer Spreads: {player.spreads}")
+                    player_knock_id = int(input('\nEnter player ID to knock..'))
+                    player_knocked = self.players[player_knock_id]
 
-                currPlayer.pull_from_deck(self.deck, 1)
-                ## ask user which card to discard
-                # for card_idx, card in enumerate(currPlayer.hand):
-                    # console.print(f"card: {str(card[0])+str(card[1])}, id:[{card_idx}]")
-                # card_discard_idx = int(input('\nWhat card id to discard: '))    # fetch what card index to discard from players hand
-                currPlayer.dump_to_discard(self, currPlayer.hand[0]) # add card to discard pile
-                del currPlayer.hand[0]    # remove card from players hand
+                    ## get which spread to knock
+                    if len(player_knocked.spreads) == 0: ## player hasnt spread, cannot knock on them. Skip
+                        continue
+                    else:
+                        for spread_idx, spread in enumerate(player_knocked.spreads):
+                            console.print(f"Spread: {spread}\nIndex: {spread_idx}")
+                        spread_knock_idx = int(input("Which spread index to knock?..."))
 
-                # ## start of user input play
-                # action = input('\nWhat do you want to do? \n[D]rop\n[S]pread\n[K]nock\nPull [DI]scard\nPull [DE]ck\n\nEnter Action: ')
-                # if action.upper() == 'D':
-                #     self.player_drop(currPlayer)
-                # if action.upper() == 'S':
-                #     if not self.player_spread(currPlayer):
-                #         console.print("No cards to spread...")
-                # if action.upper() == 'K':
-                #     ## ask user which player to knock
-                #     for player_idx, player in enumerate(self.players):
-                #         console.print(f"\nplayer: {player.name}\nIndex: {player_idx}\nPlayer Spreads: {player.spreads}")
-                #     player_knock_id = int(input('\nEnter player ID to knock..'))
-                #     player_knocked = self.players[player_knock_id]
+                        ## ask user which card to knock with
+                        for card_idx, card in enumerate(currPlayer.hand):
+                            console.print(f"card: {str(card[0])+str(card[1])}, id:[{card_idx}]")
+                        card_knock_idx = int(input('\nWhat card id to knock with...'))
 
-                #     ## get which spread to knock
-                #     if len(player_knocked.spreads) == 0: ## player hasnt spread, cannot knock on them. Skip
-                #         continue
-                #     else:
-                #         for spread_idx, spread in enumerate(player_knocked.spreads):
-                #             console.print(f"Spread: {spread}\nIndex: {spread_idx}")
-                #         spread_knock_idx = int(input("Which spread index to knock?..."))
-
-                #         ## ask user which card to knock with
-                #         for card_idx, card in enumerate(currPlayer.hand):
-                #             console.print(f"card: {str(card[0])+str(card[1])}, id:[{card_idx}]")
-                #         card_knock_idx = int(input('\nWhat card id to knock with...'))
-
-                #         currPlayer.knock(player_knocked, spread_knock_idx, card_knock_idx)
-                # if action.upper() == 'DI':
-                #     currPlayer.pull_from_discard(self)
-                #     ## ask user which card to discard
-                #     for card_idx, card in enumerate(currPlayer.hand):
-                #         console.print(f"card: {str(card[0])+str(card[1])}, id:[{card_idx}]")
-                #     card_discard_idx = int(input('\nWhat card id to discard: '))    # fetch what card index to discard from players hand
-                #     currPlayer.dump_to_discard(self, currPlayer.hand[card_discard_idx]) # add card to discard pile
-                #     del currPlayer.hand[card_discard_idx]    # remove card from players hand
+                        currPlayer.knock(player_knocked, spread_knock_idx, card_knock_idx)
+                if action.upper() == 'DI':
+                    currPlayer.pull_from_discard(self)
+                    ## ask user which card to discard
+                    for card_idx, card in enumerate(currPlayer.hand):
+                        console.print(f"card: {str(card[0])+str(card[1])}, id:[{card_idx}]")
+                    card_discard_idx = int(input('\nWhat card id to discard: '))    # fetch what card index to discard from players hand
+                    currPlayer.dump_to_discard(self, currPlayer.hand[card_discard_idx]) # add card to discard pile
+                    del currPlayer.hand[card_discard_idx]    # remove card from players hand
                 
-                # if action.upper() == 'DE':
-                #     currPlayer.pull_from_deck(self.deck, 1)
-                #     ## ask user which card to discard
-                #     for card_idx, card in enumerate(currPlayer.hand):
-                #         console.print(f"card: {str(card[0])+str(card[1])}, id:[{card_idx}]")
-                #     card_discard_idx = int(input('\nWhat card id to discard: '))    # fetch what card index to discard from players hand
-                #     currPlayer.dump_to_discard(self, currPlayer.hand[card_discard_idx]) # add card to discard pile
-                #     del currPlayer.hand[card_discard_idx]    # remove card from players hand
-                # ## end of user input play
-
+                if action.upper() == 'DE':
+                    currPlayer.pull_from_deck(self.deck, 1)
+                    ## ask user which card to discard
+                    for card_idx, card in enumerate(currPlayer.hand):
+                        console.print(f"card: {str(card[0])+str(card[1])}, id:[{card_idx}]")
+                    card_discard_idx = int(input('\nWhat card id to discard: '))    # fetch what card index to discard from players hand
+                    currPlayer.dump_to_discard(self, currPlayer.hand[card_discard_idx]) # add card to discard pile
+                    del currPlayer.hand[card_discard_idx]    # remove card from players hand
+                ## end of user input play
 
                 ## check if (2) spreads have been placed by player then game ends
                 if len(currPlayer.spreads) == 2:
